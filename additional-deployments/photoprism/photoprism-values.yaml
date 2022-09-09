@@ -1,0 +1,75 @@
+# Mostely default values for PhotoPrism Helm chart
+# For more options see the values for the helm chart. Here only
+# selected options are used.
+
+# Image specification
+image:
+  repository: photoprism/photoprism
+  tag: latest # Or specify this version "20211215"
+  pullPolicy: IfNotPresent
+
+# Default password is 'photoprism'
+# adminPassword: ""
+
+# Use existing secret for Admin password, key 'PHOTOPRISM_ADMIN_PASSWORD'
+# existingSecret:
+
+# The Photoprism repo contians good documentation of available configurations.
+config:
+  PHOTOPRISM_DEBUG: false        # Set to true to get more debug logs
+  PHOTOPRISM_PUBLIC: true        # If true then no login is required
+  PHOTOPRISM_READONLY: false     # Set to true to enable readonly
+  PHOTOPRISM_HTTP_MODE: release  # Different modes: debug, release, or test
+  # Setting the PHOTOPRISM_SITE_URL causes problems. Use with caution
+  PHOTOPRISM_SITE_URL: local.example.io
+
+# nodeSelector:
+#   kubernetes.io/hostname:
+
+persistence:
+  enabled: true
+  storagePath:   &storagePath    /photoprism/storage
+  originalsPath: &originalsPath /photoprism/originals
+
+  volumeMounts:
+  - name: originals
+    mountPath: *originalsPath
+    subPath: photos/family
+  - name: storage
+    mountPath: *storagePath
+
+  volumes:
+  - name: originals
+    nfs:
+      server: <ip address>
+      path: <folder path on nas-server>
+  - name: storage
+    nfs:
+      server: <ip address>
+      path: <folder path on nas-server>
+
+service:
+  type: ClusterIP
+  port: 80
+
+# securityContext:
+#   fsGroup: 100
+#   runAsUser: 1000
+#   runAsGroup: 1000
+
+resources:
+  requests:
+    memory: 6Gi
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+
+# tolerations: []
+
+# affinity: {}
+
+
+# A remote MySQL instance can be used, but needs to be configured
+database:
+  driver: sqlite
